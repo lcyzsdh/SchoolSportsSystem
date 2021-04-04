@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import messagebox
 from tkinter import filedialog
 
+uname =''
+
 # 注册窗口
 class RegisterWindow(tk.Tk):
     def __init__(self):
@@ -9,14 +11,45 @@ class RegisterWindow(tk.Tk):
         wi = self.winfo_screenwidth()
         he = self.winfo_screenheight()
         x = 500
-        y = 200
+        y = 400
         self.geometry("%dx%d+%d+%d" % (x, y, (wi - x) / 2, (he - y) / 2))
+        self.overrideredirect(True)
         self.resizable(width=False, height=False)
-        self.title('学生体育考勤管理系统注册')
-        self.init_ui()
+        self.ini_ui()
 
-    def init_ui(self):
-        b1 = tk.Button()
+    def ini_ui(self):
+
+        def quxiao():
+            self.destroy()
+
+        def zhuce():
+            with open('./db/users.txt', 'a') as f:
+                if enmm.get() == enrmm.get():
+                    f.write("%s\n%s\n" % (enzh.get(), enmm.get()))
+                    f.close()
+                    tk.messagebox.showinfo('欢迎', '注册成功')
+                    self.destroy()
+                else:
+                    tk.messagebox.showerror('错误', '请重新输入密码')
+
+        lzh = tk.Label(self, text='新账号', font=('宋体', 18))
+        lmm = tk.Label(self, text='新密码', font=('宋体', 18))
+        lrmm = tk.Label(self, text='确认密码', font=('宋体', 18))
+        enzh = tk.Entry(self, show=None, font=('宋体', 18))
+        enmm = tk.Entry(self, show='*', font=('宋体', 18))
+        enrmm = tk.Entry(self, show='*', font=('宋体', 18))
+        enzh.focus()
+        bzhuce = tk.Button(self, text='注册', font=('宋体', 12), width=10, height=1, command=zhuce)
+        bquxiao = tk.Button(self, text='取消', font=('宋体', 12), width=10, height=1, command=quxiao)
+        bzhuce.place(x=70, y=350)
+        bquxiao.place(x=300, y=350)
+        enzh.place(x=150, y=53)
+        enmm.place(x=150, y=153)
+        enrmm.place(x=150, y=253)
+        lzh.place(x=40, y=50)
+        lmm.place(x=40, y=150)
+        lrmm.place(x=40, y=250)
+        self.mainloop()
 
 
 # 登录窗口
@@ -59,15 +92,15 @@ class SignWindow(tk.Tk):
                 for line in f.readlines():
                     line = line.strip('\n')
                     t = t + 1
-                    if t % 3 == 1:
+                    if t % 2 == 1:
                         zh = line
-                    elif t % 3 == 2:
+                    elif t % 2 == 0:
                         mm = line
-                    elif t % 3 == 0:
                         if ezh.get() == zh and emm.get() == mm:
                             self.destroy()
+                            global uname
+                            uname = zh
                             mainwindow = MainWindow()
-                            mainwindow.nm = line
                             mainwindow.mainloop()
                             f.close()
                         else:
@@ -95,14 +128,16 @@ class KqWindow(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title('体育考勤')
-        self.geometry("1050x600")
+        self.geometry("650x600")
         self.resizable(width=False, height=False)
         self.init_ui()
 
     def init_ui(self):
-        stlist = tk.Listbox(self, height=50)
-        stlist.place(x=40, y=60)
-
+        classes =0
+        with open('./db/'+uname+'/classes.txt', 'r') as fi:
+            for t in fi.readlines():
+                if t[0] == '#':
+                    classes += 1
         def opfile():
             oplc = filedialog.askopenfilename()
             allname = []
@@ -110,10 +145,21 @@ class KqWindow(tk.Tk):
                 for line in f.readlines():
                     line = line.strip('\n')
                     allname.append(line)
-            print(allname)
+                f.close()
+            for i in allname:
+                stlist.insert('end', i)
+            with open('./db/' + uname + '/classes.txt', 'a') as fi:
+                fi.write('#%s\n' % classes)
+                for words in allname:
+                    fi.write("%s\n" % words)
 
-        drbutton = tk.Button(self, text='daoru' ,font=('黑体', 16), width =10,height= 2,command=opfile)
-        drbutton.place(x=100,y =200)
+        stlist = tk.Listbox(self,height=40)
+        stlist.place(x=90, y=50)
+
+        drbutton = tk.Button(self, text='导入学生名单', font=('黑体', 10), width =10,height= 1,command=opfile)
+        drbutton.place(x=200,y =20)
+
+        # chcl =tk.
 
 
 # 主窗口
