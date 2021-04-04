@@ -14,28 +14,29 @@ class SignWindow(tk.Tk):
         self.ini_ui()
 
     def ini_ui(self):
-        l = tk.Label(self, text='账号', font=('宋体', 18))
-        l.place(x=30, y=40)
-        l1 = tk.Label(self, text='密码', font=('宋体', 18))
-        l1.place(x=30, y=90)
-        e1 = tk.Entry(self, show=None, font=('宋体', 18))
-        e1.place(x=130, y=43)
-        e1.focus()
-        e2 = tk.Entry(self, show='*', font=('宋体', 18))
-        e2.place(x=130, y=93)
+        lzh = tk.Label(self, text='账号', font=('宋体', 18))
+        lzh.place(x=30, y=40)
+        lmm = tk.Label(self, text='密码', font=('宋体', 18))
+        lmm.place(x=30, y=90)
+        ezh = tk.Entry(self, show=None, font=('宋体', 18))
+        ezh.place(x=130, y=43)
+        ezh.focus()
+        emm = tk.Entry(self, show='*', font=('宋体', 18))
+        emm.place(x=130, y=93)
 
-        def focus():
-            e2.focus()
-
-        def func():
+        def signcanel():
             self.destroy()
+        def signtowindow():
+            self.destroy()
+            mainwindow = MainWindow()
+            mainwindow.mainloop()
 
-        B1 = tk.Button(self, text='取消', font=('宋体', 12), width=10, height=1, command=func)
-        B2 = tk.Button(self, text='登录', font=('宋体', 12), width=10, height=1)
-        B3 = tk.Button(self, text='注册', font=('宋体', 12), width=10, height=1)
-        B1.place(x=330, y=150)
-        B2.place(x=200, y=150)
-        B3.place(x=70, y=150)
+        bcancel = tk.Button(self, text='取消', font=('宋体', 12), width=10, height=1, command=signcanel)
+        bsign = tk.Button(self, text='登录', font=('宋体', 12), width=10, height=1, command=signtowindow)
+        brg = tk.Button(self, text='注册', font=('宋体', 12), width=10, height=1)
+        bcancel.place(x=330, y=150)
+        bsign.place(x=200, y=150)
+        brg.place(x=70, y=150)
 
 
 class MainWindow(tk.Tk):
