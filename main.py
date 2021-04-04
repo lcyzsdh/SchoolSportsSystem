@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
+from tkinter import filedialog
 
-
+# 注册窗口
 class RegisterWindow(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -15,9 +16,10 @@ class RegisterWindow(tk.Tk):
         self.init_ui()
 
     def init_ui(self):
-        b1= tk.Button()
+        b1 = tk.Button()
 
 
+# 登录窗口
 class SignWindow(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -29,7 +31,6 @@ class SignWindow(tk.Tk):
         self.overrideredirect(True)
         self.resizable(width=False, height=False)
         self.init_ui()
-
 
     def init_ui(self):
         lzh = tk.Label(self, text='账号', font=('黑体', 22))
@@ -57,23 +58,28 @@ class SignWindow(tk.Tk):
             with open("./db/users.txt", "r") as f:
                 for line in f.readlines():
                     line = line.strip('\n')
-                    t = t+1
-                    if t % 2 == 1:
+                    t = t + 1
+                    if t % 3 == 1:
                         zh = line
-                    elif t % 2 == 0:
+                    elif t % 3 == 2:
                         mm = line
+                    elif t % 3 == 0:
                         if ezh.get() == zh and emm.get() == mm:
                             self.destroy()
                             mainwindow = MainWindow()
+                            mainwindow.nm = line
                             mainwindow.mainloop()
+                            f.close()
                         else:
                             if t == length:
                                 zhwrong = tk.messagebox.showinfo(message='账号密码错误')
+                                ezh.delete(0, 'end')
+                                emm.delete(0, 'end')
                         zh = ''
                         mm = ''
 
         def registerwindow():
-            rgwindow= RegisterWindow()
+            rgwindow = RegisterWindow()
             rgwindow.mainloop()
 
         bcancel = tk.Button(self, text='取消', font=('黑体', 16), width=10, height=1, command=signcanel)
@@ -84,14 +90,36 @@ class SignWindow(tk.Tk):
         brg.place(x=70, y=150)
 
 
+# 考勤窗口
 class KqWindow(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title('体育考勤')
-        self.geometry("500x600")
+        self.geometry("1050x600")
+        self.resizable(width=False, height=False)
+        self.init_ui()
+
+    def init_ui(self):
+        stlist = tk.Listbox(self, height=50)
+        stlist.place(x=40, y=60)
+
+        def opfile():
+            oplc = filedialog.askopenfilename()
+            allname = []
+            with open(oplc, 'r') as f:
+                for line in f.readlines():
+                    line = line.strip('\n')
+                    allname.append(line)
+            print(allname)
+
+        drbutton = tk.Button(self, text='daoru' ,font=('黑体', 16), width =10,height= 2,command=opfile)
+        drbutton.place(x=100,y =200)
 
 
+# 主窗口
 class MainWindow(tk.Tk):
+    nm = ''
+
     def __init__(self):
         super().__init__()
         self.title("学生体育考勤管理系统")
@@ -100,9 +128,11 @@ class MainWindow(tk.Tk):
         self.ini_ui()
 
     def ini_ui(self):
-
         toplabel = tk.Label(self, text="学 生 体 育 统 计 系 统", font=('黑体', 16))
         toplabel.place(x=10, y=15)
+
+        namelabel = tk.Label(self, text=self.nm, font=('黑体', 16))
+        namelabel.place(x=10, y=25)
 
         def mainquit():
             self.destroy()
@@ -113,22 +143,20 @@ class MainWindow(tk.Tk):
         mainmenu = tk.Menu(self)
         helpmenu = tk.Menu(mainmenu, tearoff=0)
         mainmenu.add_cascade(label='帮助', menu=helpmenu)
-        helpmenu.add_command(label="帮助文件....",)
+        helpmenu.add_command(label="帮助文件....", )
         helpmenu.add_command(label='退出', command=mainquit)
         self.config(menu=mainmenu)
 
-        kqbutton = tk.Button(self, text='学生体育考勤', font=('黑体', 16),width=20,height=3,command=opkqwindow)
+        kqbutton = tk.Button(self, text='学生体育考勤', font=('黑体', 16), width=20, height=3, command=opkqwindow)
         kqbutton.place(x=20, y=70)
-        ckbutton = tk.Button(self, text='导出学生成绩', font=('黑体', 16),width=20,height=3)
+        ckbutton = tk.Button(self, text='导出学生成绩', font=('黑体', 16), width=20, height=3)
         ckbutton.place(x=20, y=170)
-        tjbutton = tk.Button(self, text='学生数据统计', font=('黑体', 16),width=20,height=3)
+        tjbutton = tk.Button(self, text='学生数据统计', font=('黑体', 16), width=20, height=3)
         tjbutton.place(x=20, y=270)
-        tcbutton = tk.Button(self,text='退出', font=('黑体', 10),width=10,height=2)
+        tcbutton = tk.Button(self, text='退出', font=('黑体', 10), width=10, height=2, command=mainquit)
         tcbutton.place(x=200, y=355)
 
 
 if __name__ == "__main__":
-    signwindow= SignWindow()
-    signwindow.mainloop()
 
-    #MainWindow().mainloop()
+    SignWindow().mainloop()
