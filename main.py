@@ -1,5 +1,5 @@
 import tkinter as tk
-
+from tkinter import messagebox
 
 class SignWindow(tk.Tk):
     def __init__(self):
@@ -26,10 +26,33 @@ class SignWindow(tk.Tk):
 
         def signcanel():
             self.destroy()
+
         def signtowindow():
-            self.destroy()
-            mainwindow = MainWindow()
-            mainwindow.mainloop()
+            with open("./db/users.txt","r") as f:
+                t = 0
+                zh = ''
+                mm = ''
+                length = 0
+                for line in f.readlines():
+                    length = length + 1
+                f.close()
+            with open("./db/users.txt", "r") as f:
+                for line in f.readlines():
+                    line = line.strip('\n')
+                    t = t+1
+                    if t % 2 == 1:
+                        zh = line
+                    elif t % 2 == 0:
+                        mm = line
+                        if ezh.get() == zh and emm.get() == mm:
+                            self.destroy()
+                            mainwindow = MainWindow()
+                            mainwindow.mainloop()
+                        else:
+                            if t == length:
+                                zhwrong = tk.messagebox.showinfo(message='账号密码错误')
+                        zh = ''
+                        mm = ''
 
         bcancel = tk.Button(self, text='取消', font=('宋体', 12), width=10, height=1, command=signcanel)
         bsign = tk.Button(self, text='登录', font=('宋体', 12), width=10, height=1, command=signtowindow)
