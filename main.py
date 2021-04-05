@@ -212,8 +212,8 @@ class KqChoose(tk.Tk):
         self.title('考勤内容选择')
         wi = self.winfo_screenwidth()
         he = self.winfo_screenheight()
-        x = 250
-        y = 320
+        x = 200
+        y = 220
         self.geometry("%dx%d+%d+%d" % (x, y, (wi - x) / 2, (he - y) / 2))
         self.resizable(width=False, height=False)
         self.overrideredirect(True)
@@ -221,14 +221,33 @@ class KqChoose(tk.Tk):
     def ini_ui(self):
         sb =tk.Scrollbar(self,orient='vertical')
         sb.pack(side=tk.RIGHT,fill=tk.Y)
-        nrlist =tk.Listbox(self,height=6,width=20)
-        nrlist.place(x=10,y=50)
+        nrlist =tk.Listbox(self,height=8,width=25)
+        nrlist.place(x=0,y=0)
         knf = open('./db/'+uname+'/kqnr.txt', 'r+')
         alln=knf.readlines()
         for n in alln:
             nrlist.insert('end',n)
         nrlist.config(yscrollcommand=sb.set)
         sb.config(command=nrlist.yview,width=16)
+
+        def addn():
+            an = newa.get()
+            nrlist.insert(0,an)
+            newa.delete(0,'end')
+
+        def enter():
+            global nowkq
+            nowkq=nrlist.get('active')
+            self.destroy()
+            KqWindow().mainloop()
+
+        newa =tk.Entry(self,width=18)
+        newa.place(x=10,y=155)
+        ad =tk.Button(self,width=2,height=1,text='+',font=('Arial',13),command=addn)
+        ad.place(x=150,y=150)
+
+        enterb=tk.Button(self,width=23,height=1,text='确定',command=enter)
+        enterb.place(x=5,y=185)
 
 # 主窗口
 class MainWindow(tk.Tk):
