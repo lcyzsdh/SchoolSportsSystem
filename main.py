@@ -3,6 +3,7 @@ from tkinter import messagebox
 from tkinter import filedialog
 
 uname =''
+nowkq =''
 
 # 注册窗口
 class RegisterWindow(tk.Tk):
@@ -133,11 +134,19 @@ class KqWindow(tk.Tk):
         self.init_ui()
 
     def init_ui(self):
-        classes =0
-        with open('./db/'+uname+'/classes.txt', 'r') as fi:
-            for t in fi.readlines():
-                if t[0] == '#':
-                    classes += 1
+        classes = 0  # 总班级数
+        alllength = 0
+        classloc = []  # 班级开始的行数
+        p1=0
+        p2=0
+        kqname='we'
+        fi = open('./db/'+uname+'/classes.txt', 'r')
+        allf = fi.readlines()
+        for t in allf:
+            alllength += 1
+            if t[0] == '#':
+                classes += 1
+                classloc.append(alllength)
         def opfile():
             oplc = filedialog.askopenfilename()
             allname = []
@@ -153,14 +162,73 @@ class KqWindow(tk.Tk):
                 for words in allname:
                     fi.write("%s\n" % words)
 
+        def leadclass():
+            nowclass= chcl.get('active')
+            banji = int(nowclass[2])
+            p1=classloc[banji-1]
+            p2=classloc[banji]
+            for tem in allf[p1:p2-1]:
+                stlist.insert('end',tem)
+
+        def joinqq():
+            nowstu=stlist.get('active')
+            qqlist.insert('end',nowstu)
+
+        def kqok():
+            qqstu=qqlist.get(0,'end')
+            print(qqstu)
+            for st in qqstu:
+                qqfile = open('./db/'+uname+'/'+kqname+'.txt','w')
+                qqfile.write(st)
+
+
         stlist = tk.Listbox(self,height=40)
-        stlist.place(x=90, y=50)
+        stlist.place(x=390, y=50)
+
+        qqlist =tk.Listbox(self,height=40)
+        qqlist.place(x=200,y=250)
 
         drbutton = tk.Button(self, text='导入学生名单', font=('黑体', 10), width =10,height= 1,command=opfile)
-        drbutton.place(x=200,y =20)
+        drbutton.place(x=500,y =500)
 
-        # chcl =tk.
+        chcl = tk.Listbox(self, height=12)
+        for i in range(1, classes+1):
+            chcl.insert('end', '班级' + str(i))
+        chcl.place(x=90, y=50)
 
+        chclb =tk.Button(self, text='选择班级>>>', width=10,height=1,command=leadclass)
+        chclb.place(x=100,y=200)
+
+        qqstb = tk.Button(self, text ='加入缺勤名单',width=10,height=1,command=joinqq)
+        qqstb.place(x=200,y=300)
+
+        saveb = tk.Button(self,text = '完成考勤',width=10,height=1,command=kqok)
+        saveb.place(x=300,y=200)
+
+# 考勤内容选择窗口
+class KqChoose(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title('考勤内容选择')
+        wi = self.winfo_screenwidth()
+        he = self.winfo_screenheight()
+        x = 250
+        y = 320
+        self.geometry("%dx%d+%d+%d" % (x, y, (wi - x) / 2, (he - y) / 2))
+        self.resizable(width=False, height=False)
+        self.overrideredirect(True)
+        self.ini_ui()
+    def ini_ui(self):
+        sb =tk.Scrollbar(self,orient='vertical')
+        sb.pack(side=tk.RIGHT,fill=tk.Y)
+        nrlist =tk.Listbox(self,height=6,width=20)
+        nrlist.place(x=10,y=50)
+        knf = open('./db/'+uname+'/kqnr.txt', 'r+')
+        alln=knf.readlines()
+        for n in alln:
+            nrlist.insert('end',n)
+        nrlist.config(yscrollcommand=sb.set)
+        sb.config(command=nrlist.yview,width=16)
 
 # 主窗口
 class MainWindow(tk.Tk):
@@ -184,7 +252,8 @@ class MainWindow(tk.Tk):
             self.destroy()
 
         def opkqwindow():
-            KqWindow().mainloop()
+            self.destroy()
+            KqChoose().mainloop()
 
         mainmenu = tk.Menu(self)
         helpmenu = tk.Menu(mainmenu, tearoff=0)
@@ -197,8 +266,9 @@ class MainWindow(tk.Tk):
         kqbutton.place(x=20, y=70)
         ckbutton = tk.Button(self, text='导出学生成绩', font=('黑体', 16), width=20, height=3)
         ckbutton.place(x=20, y=170)
-        tjbutton = tk.Button(self, text='学生数据统计', font=('黑体', 16), width=20, height=3)
+        tjbutton = tk.Button(self, text='学生管理统计', font=('黑体', 16), width=20, height=3)
         tjbutton.place(x=20, y=270)
+
         tcbutton = tk.Button(self, text='退出', font=('黑体', 10), width=10, height=2, command=mainquit)
         tcbutton.place(x=200, y=355)
 
