@@ -1,4 +1,5 @@
 import csv
+import os
 import sqlite3 as sq
 import tkinter as tk
 from tkinter import filedialog
@@ -7,6 +8,8 @@ from tkinter import ttk
 
 uname = ''
 nowkq = ''
+nwcla = ''
+
 usco = sq.connect('./db/test.db')
 cur = usco.cursor()
 cur.execute("create table if not exists login (id varchar(20) primary key, name varchar(30), password "
@@ -39,17 +42,23 @@ class RegisterWindow(tk.Tk):
 
         def quxiao():
             self.destroy()
+            SignWindow().mainloop()
 
         def zhuce():
 
             if enmm.get() == enrmm.get():
                 zh = enzh.get()
                 mm = enmm.get()
-                print(zh, mm)
                 global cur
                 cur.execute("insert into login (name, password) values (?,?)", (zh, mm))
                 tk.messagebox.showinfo('欢迎', '注册成功')
+                os.mkdir('./db/' + zh)
+                global uname
+                uname = zh
                 self.destroy()
+                usco.commit()
+                usco.close()
+                MainWindow().mainloop()
             else:
                 tk.messagebox.showerror('错误', '请重新输入密码')
 
@@ -65,7 +74,6 @@ class RegisterWindow(tk.Tk):
         lzh.place(x=40, y=50)
         lmm.place(x=40, y=150)
         lrmm.place(x=40, y=250)
-        self.mainloop()
 
 
 # 登录窗口
@@ -113,7 +121,7 @@ class SignWindow(tk.Tk):
                     self.destroy()
                     global uname
                     uname = zh
-                    cur.close()
+                    usco.close()
                     mainwindow = MainWindow()
                     mainwindow.mainloop()
             if fd == 0:
@@ -122,6 +130,7 @@ class SignWindow(tk.Tk):
                 emm.delete(0, 'end')
 
         def registerwindow():
+            self.destroy()
             rgwindow = RegisterWindow()
             rgwindow.mainloop()
 
@@ -143,42 +152,15 @@ class KqWindow(tk.Tk):
         self.init_ui()
 
     def init_ui(self):
-        classes = 0  # 总班级数
-        alllength = 0
-        classloc = []  # 班级开始的行数
-        p1 = 0
-        p2 = 0
-        kqname = 'we'
-        fi = open('./db/' + uname + '/classes.txt', 'r')
-        allf = fi.readlines()
-        for t in allf:
-            alllength += 1
-            if t[0] == '#':
-                classes += 1
-                classloc.append(alllength)
 
-        def opfile():
-            oplc = filedialog.askopenfilename()
-            allname = []
-            with open(oplc, 'r') as f:
-                for line in f.readlines():
-                    line = line.strip('\n')
-                    allname.append(line)
-                f.close()
-            for i in allname:
-                stlist.insert('end', i)
-            with open('./db/' + uname + '/classes.txt', 'a') as fi:
-                fi.write('#%s\n' % classes)
-                for words in allname:
-                    fi.write("%s\n" % words)
-
-        def leadclass():
-            nowclass = chcl.get('active')
-            banji = int(nowclass[2])
-            p1 = classloc[banji - 1]
-            p2 = classloc[banji]
-            for tem in allf[p1:p2 - 1]:
-                stlist.insert('end', tem)
+        def impclass():
+            clnm = chcl.get()
+            global nwcla
+            nwcla = clnm
+            f2 = open('./db/' + uname + '/' + clnm + '.csv', 'r', encoding='utf-8')
+            fw = csv.reader(f2)
+            for row1 in fw:
+                stlist.insert('end', row1[0])
 
         def joinqq():
             nowstu = stlist.get('active')
@@ -186,10 +168,40 @@ class KqWindow(tk.Tk):
 
         def kqok():
             qqstu = qqlist.get(0, 'end')
-            print(qqstu)
-            for st in qqstu:
-                qqfile = open('./db/' + uname + '/' + kqname + '.txt', 'w')
-                qqfile.write(st)
+            if qqstu:
+                pass
+            else:
+                print('err')
+                return
+            qqlist.delete(0, 'end')
+            f3 = open('./db/' + uname + '/' + nwcla + '.csv', 'r', encoding='utf-8')
+            f3r = csv.reader(f3)
+            aline = []
+            for row1 in f3r:
+                aline.append(row1)
+            f3.close()
+            f4 = open('./db/' + uname + '/' + nwcla + '.csv', 'w', newline='', encoding='utf-8')
+            f4w = csv.writer(f4)
+            for r in aline:
+                for nm in qqstu:
+                    if r[0] == nm:
+                        r[2] = r[2] + nowkq + ' '
+                        f4w.writerow(r)
+                        break
+                    else:
+                        t = int(r[1])
+                        t += 10
+                        r[1] = str(t)
+                        f4w.writerow(r)
+                        break
+            f4.close()
+            ask = messagebox.askokcancel('要继续留在考勤界面吗？')
+            if ask:
+                stlist.delete(0, 'end')
+                qqlist.delete(0, 'end')
+            else:
+                self.destroy()
+                MainWindow().mainloop()
 
         stlist = tk.Listbox(self, height=40)
         stlist.place(x=390, y=50)
@@ -197,15 +209,15 @@ class KqWindow(tk.Tk):
         qqlist = tk.Listbox(self, height=40)
         qqlist.place(x=200, y=250)
 
-        drbutton = tk.Button(self, text='导入学生名单', font=('黑体', 10), width=10, height=1, command=opfile)
-        drbutton.place(x=500, y=500)
+        allcl = []
+        with open('./db/' + uname + '/classlist.txt', 'r', encoding='utf-8') as f:
+            for row in f.readlines():
+                trow = row.replace('\n', '')
+                allcl.append(trow)
+        chcl = ttk.Combobox(self, values=allcl)
+        chcl.place(x=400, y=400)
 
-        chcl = tk.Listbox(self, height=12)
-        for i in range(1, classes + 1):
-            chcl.insert('end', '班级' + str(i))
-        chcl.place(x=90, y=50)
-
-        chclb = tk.Button(self, text='选择班级>>>', width=10, height=1, command=leadclass)
+        chclb = tk.Button(self, text='选择班级', width=10, height=1, command=impclass)
         chclb.place(x=100, y=200)
 
         qqstb = tk.Button(self, text='加入缺勤名单', width=10, height=1, command=joinqq)
@@ -223,7 +235,7 @@ class KqChoose(tk.Tk):
         wi = self.winfo_screenwidth()
         he = self.winfo_screenheight()
         x = 200
-        y = 220
+        y = 200
         self.geometry("%dx%d+%d+%d" % (x, y, (wi - x) / 2, (he - y) / 2))
         self.resizable(width=False, height=False)
         self.overrideredirect(True)
@@ -234,17 +246,13 @@ class KqChoose(tk.Tk):
         sb.pack(side=tk.RIGHT, fill=tk.Y)
         nrlist = tk.Listbox(self, height=8, width=25)
         nrlist.place(x=0, y=0)
-        knf = open('./db/' + uname + '/kqnr.txt', 'r+')
-        alln = knf.readlines()
-        for n in alln:
-            nrlist.insert('end', n)
+        kqf = open('./db/' + uname + '/kqlist.csv', 'r', encoding='utf-8')
+        kqc = csv.reader(kqf)
+        for n in kqc:
+            nrlist.insert('end', n[0])
+
         nrlist.config(yscrollcommand=sb.set)
         sb.config(command=nrlist.yview, width=16)
-
-        def addn():
-            an = newa.get()
-            nrlist.insert(0, an)
-            newa.delete(0, 'end')
 
         def enter():
             global nowkq
@@ -252,13 +260,8 @@ class KqChoose(tk.Tk):
             self.destroy()
             KqWindow().mainloop()
 
-        newa = tk.Entry(self, width=18)
-        newa.place(x=10, y=155)
-        ad = tk.Button(self, width=2, height=1, text='+', font=('Arial', 13), command=addn)
-        ad.place(x=150, y=150)
-
         enterb = tk.Button(self, width=23, height=1, text='确定', command=enter)
-        enterb.place(x=5, y=185)
+        enterb.place(x=5, y=155)
 
 
 # 导入新班级窗口
@@ -276,16 +279,17 @@ class DrNewClass(tk.Tk):
             var.set(mdfile)
 
         def drquit():
-            f = open(var.get(), 'r')
+            f = open(var.get(), 'r', encoding='utf-8')
             fc = csv.reader(f)
-            f2 = open('./db/' + uname + '/'+nmet.get()+'.csv', 'a', newline='')
+            f2 = open('./db/' + uname + '/' + nmet.get() + '.csv', 'a', newline='', encoding='utf-8')
             fw = csv.writer(f2)
             for row in fc:
-                fw.writerow(row[0])
+                row.append('0')
+                row.append('')
+                fw.writerow(row)
             f2.close()
-            f3 =open('./db/' + uname + '/classlist.txt','a')
-            print(nmet.get())
-            f3.write(nmet.get()+'\n')
+            f3 = open('./db/' + uname + '/classlist.txt', 'a', encoding='utf-8')
+            f3.write(nmet.get() + '\n')
             f3.close()
             self.destroy()
             StManager().mainloop()
@@ -294,12 +298,12 @@ class DrNewClass(tk.Tk):
         crb.place(x=30, y=20)
         var = tk.StringVar(self)
         var.set("请选择班级")
-        locl = tk.Label(self,textvariable=var)
-        locl.place(x=10,y=10)
-        nmet =tk.Entry(self, show=None, font=('宋体', 18))
-        nmet.place(x=20,y=30)
-        qdb= tk.Button(self,text='que ding',command=drquit)
-        qdb.place(x=90,y=40)
+        locl = tk.Label(self, textvariable=var)
+        locl.place(x=10, y=10)
+        nmet = tk.Entry(self, show=None, font=('宋体', 18))
+        nmet.place(x=20, y=30)
+        qdb = tk.Button(self, text='que ding', command=drquit)
+        qdb.place(x=90, y=40)
 
 
 # 学生管理窗口
@@ -312,60 +316,118 @@ class StManager(tk.Tk):
         self.init_ui()
 
     def init_ui(self):
+        # 学生班级管理
         def drnc():
             self.destroy()
             DrNewClass().mainloop()
 
         def ok():
-            nmli.delete(0,'end')
-            f2 = open('./db/' + uname + '/' + chcl.get() + '.csv', 'r',encoding='utf-8')
+            nmli.delete(0, 'end')
+            f2 = open('./db/' + uname + '/' + chcl.get() + '.csv', 'r', encoding='utf-8')
             fw = csv.reader(f2)
-            for row in fw:
-                nmli.insert('end', row[0])
+            for row2 in fw:
+                nmli.insert('end', row2[0])
 
         nmlabel = tk.Label(self, text='welcome' + uname)
         nmlabel.place(x=10, y=10)
         crbj = tk.Button(self, text='导入新班级', command=drnc)
         crbj.place(x=80, y=10)
         allcl = []
-        with open('./db/' + uname + '/classlist.txt','r') as f:
+        try:
+            f = open('./db/' + uname + '/classlist.txt', 'r', encoding='utf-8')
+        except FileNotFoundError:
+            print('errrrrrrrrrr')
+            t = open('./db/' + uname + '/classlist.txt', 'w', encoding='utf-8')
+            t.close()
+            # f = open('./db/' + uname + '/classlist.txt', 'r', encoding='utf-8')
+            # for row in f.readlines():
+            #     trow = row.replace('\n', '')
+            #     allcl.append(trow)
+        else:
+            print('1111111111')
             for row in f.readlines():
-                trow =row.replace('\n','')
+                trow = row.replace('\n', '')
                 allcl.append(trow)
+
         chcl = ttk.Combobox(self, values=allcl)
         chcl.place(x=200, y=400)
         nmli = tk.Listbox(self, height=20)
         nmli.place(x=40, y=60)
-        nmlisb = tk.Scrollbar(self)
-        nmli.config(yscrollcommand=nmlisb.set)
-        nmlisb.config(command=nmli.yview, width=16)
-        nmlisb.pack(side=tk.RIGHT, fill=tk.Y)
         qd = tk.Button(self, text='班级选择预览', command=ok)
         qd.place(x=300, y=200)
+
+        # 考勤内容管理
+        nrlist = tk.Listbox(self, height=8, width=25)
+        nrlist.place(x=200, y=200)
+        ft1 = open('./db/' + uname + '/kqlist.csv', 'a', encoding='utf-8')
+        ft1.close()
+        kqf = open('./db/' + uname + '/kqlist.csv', 'r', encoding='utf-8')
+        kqc = csv.reader(kqf)
+        for n in kqc:
+            nrlist.insert('end', n[0] + '      ' + n[1] + '学分')
+
+        def addn():
+            kqnm = newnm.get()
+            kqsc = newsc.get()
+            nrlist.insert('end', kqnm + '      ' + kqsc + '学分')
+            kqf1 = open('./db/' + uname + '/kqlist.csv', 'a', newline='', encoding='utf-8')
+            kqw = csv.writer(kqf1)
+            kqw.writerow([kqnm, kqsc])
+            newnm.delete(0, 'end')
+            newsc.delete(0, 'end')
+            kqf1.close()
+
+        def fc():
+            self.destroy()
+            MainWindow().mainloop()
+
+        newnm = tk.Entry(self, width=18)
+        newnm.place(x=340, y=155)
+        newsc = tk.Entry(self, width=2)
+        newsc.place(x=430, y=185)
+        ad = tk.Button(self, width=5, height=1, text='添加', font=('Arial', 13), command=addn)
+        ad.place(x=350, y=190)
+        fh = tk.Button(self, text='返回', command=fc)
+        fh.place(x=350, y=220)
 
 
 # 学生导出窗口
 class StWatcher(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title('学生管理')
+        self.title('学生成绩导出')
         self.geometry("650x600")
         self.resizable(width=False, height=False)
         self.init_ui()
 
     def init_ui(self):
+        def exp():
+            sav = filedialog.asksaveasfilename(title='导出名单', filetypes=[('SCV文件', '.csv')])
+            f = open(sav + '.csv', 'w', newline='', encoding='GB2312')
+            fnw = csv.writer(f)
+            f2 = open('./db/' + uname + '/' + chcl.get() + '.csv', 'r', encoding='utf-8')
+            fr = csv.reader(f2)
+            fnw.writerow(['姓名', '总学分', '缺勤项目'])
+            for row in fr:
+                fnw.writerow(row)
+
+        def fc():
+            self.destroy()
+            MainWindow().mainloop()
+
         def ok():
             nmli.delete(0, 'end')
             f2 = open('./db/' + uname + '/' + chcl.get() + '.csv', 'r', encoding='utf-8')
             fw = csv.reader(f2)
-            for row in fw:
-                nmli.insert('end', row[0])
+            for row2 in fw:
+                nmli.insert('end', row2[0] + '     ' + '总' + row2[1] + '学分')
 
-        nmlabel = tk.Label(self, text='welcome' + uname)
-        nmlabel.place(x=10, y=10)
-        ifl =tk.Label(self,'shuang ji cha kan')
+        dcb = tk.Button(self, text='导出为.csv', command=exp)
+        dcb.place(x=20, y=20)
+        fh = tk.Button(self, text='返回', command=fc)
+        fh.place(x=350, y=220)
         allcl = []
-        with open('./db/' + uname + '/classlist.txt', 'r') as f:
+        with open('./db/' + uname + '/classlist.txt', 'r', encoding='utf-8') as f:
             for row in f.readlines():
                 trow = row.replace('\n', '')
                 allcl.append(trow)
@@ -373,10 +435,6 @@ class StWatcher(tk.Tk):
         chcl.place(x=200, y=400)
         nmli = tk.Listbox(self, height=20)
         nmli.place(x=40, y=60)
-        nmlisb = tk.Scrollbar(self)
-        nmli.config(yscrollcommand=nmlisb.set)
-        nmlisb.config(command=nmli.yview, width=16)
-        nmlisb.pack(side=tk.RIGHT, fill=tk.Y)
         qd = tk.Button(self, text='班级选择预览', command=ok)
         qd.place(x=300, y=200)
 
