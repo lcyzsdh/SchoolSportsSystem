@@ -10,7 +10,7 @@ uname = ''
 nowkq = ''
 nwcla = ''
 
-usco = sq.connect('./db/test.db')
+usco = sq.connect('./db/list.db')
 cur = usco.cursor()
 cur.execute("create table if not exists login (id varchar(20) primary key, name varchar(30), password "
             "varchar(30))")
@@ -42,7 +42,7 @@ class RegisterWindow(tk.Tk):
 
         def quxiao():
             self.destroy()
-            SignWindow().mainloop()
+            SignWindow().root.mainloop()
 
         def zhuce():
 
@@ -58,7 +58,7 @@ class RegisterWindow(tk.Tk):
                 self.destroy()
                 usco.commit()
                 usco.close()
-                MainWindow().mainloop()
+                MainWindow().ro.mainloop()
             else:
                 tk.messagebox.showerror('错误', '请重新输入密码')
 
@@ -77,35 +77,41 @@ class RegisterWindow(tk.Tk):
 
 
 # 登录窗口
-class SignWindow(tk.Tk):
+class SignWindow:
     def __init__(self):
-        super().__init__()
-        wi = self.winfo_screenwidth()
-        he = self.winfo_screenheight()
+        self.root = tk.Tk()
+        wi = self.root.winfo_screenwidth()
+        he = self.root.winfo_screenheight()
         x = 500
-        y = 200
-        self.title('dd')
-        self.geometry("%dx%d+%d+%d" % (x, y, (wi - x) / 2, (he - y) / 2))
-        self.overrideredirect(True)
-        self.resizable(width=False, height=False)
+        y = 250
+        self.root.title('dd')
+        self.root.geometry("%dx%d+%d+%d" % (x, y, (wi - x) / 2, (he - y) / 2))
+        self.root.overrideredirect(True)
+        self.root.resizable(width=False, height=False)
         self.init_ui()
 
     def init_ui(self):
-        # bg = tk.PhotoImage(self,file='13331.gif')
-        # bgl = tk.Label(self,image=bg)
-        # bgl.place(x=10, y=10)
-        lzh = tk.Label(self, text='账号', font=('黑体', 22))
-        lzh.place(x=30, y=40)
-        lmm = tk.Label(self, text='密码', font=('黑体', 22))
-        lmm.place(x=30, y=90)
-        ezh = tk.Entry(self, show=None, font=('黑体', 22))
-        ezh.place(x=130, y=43)
+        self.img1 = tk.PhotoImage(file="./images/sign_bg.png")
+        canvas = tk.Canvas(self.root, width=500, height=200)
+        canvas.create_image(250, 125, image=self.img1)
+        canvas.pack(expand=tk.YES, fill=tk.BOTH)
+        self.img2 = tk.PhotoImage(file='./images/sign_zh.png')
+        lzh = tk.Label(self.root, image=self.img2)
+        lzh.place(x=23, y=92)
+        self.img3 = tk.PhotoImage(file='./images/sign_mm.png')
+        lmm = tk.Label(self.root, image=self.img3)
+        lmm.place(x=23, y=142)
+        ezh = tk.Entry(self.root, show=None, font=('黑体', 22))
+        ezh.place(x=130, y=93)
         ezh.focus()
-        emm = tk.Entry(self, show='*', font=('黑体', 22))
-        emm.place(x=130, y=93)
+        emm = tk.Entry(self.root, show='*', font=('黑体', 22))
+        emm.place(x=130, y=143)
+        self.img4 = tk.PhotoImage(file='./images/sign_top.png')
+        titl = tk.Label(self.root, image=self.img4)
+        titl.place(x=50, y=5)
 
         def signcanel():
-            self.destroy()
+            self.root.destroy()
 
         def signtowindow():
             global cur
@@ -118,28 +124,28 @@ class SignWindow(tk.Tk):
             for t in user:
                 if t == tup:
                     fd = 1
-                    self.destroy()
+                    self.root.destroy()
                     global uname
                     uname = zh
                     usco.close()
                     mainwindow = MainWindow()
-                    mainwindow.mainloop()
+                    mainwindow.ro.mainloop()
             if fd == 0:
                 tk.messagebox.showinfo(message='账号密码错误')
                 ezh.delete(0, 'end')
                 emm.delete(0, 'end')
 
         def registerwindow():
-            self.destroy()
+            self.root.destroy()
             rgwindow = RegisterWindow()
             rgwindow.mainloop()
 
-        bcancel = tk.Button(self, text='取消', font=('黑体', 16), width=10, height=1, command=signcanel)
-        bsign = tk.Button(self, text='登录', font=('黑体', 16), width=10, height=1, command=signtowindow)
-        brg = tk.Button(self, text='注册', font=('黑体', 16), width=10, height=1, command=registerwindow)
-        bcancel.place(x=315, y=150)
-        bsign.place(x=185, y=150)
-        brg.place(x=55, y=150)
+        bcancel = tk.Button(self.root, text='取消', font=('黑体', 16), width=10, height=1, command=signcanel)
+        bsign = tk.Button(self.root, text='登录', font=('黑体', 16), width=10, height=1, command=signtowindow)
+        brg = tk.Button(self.root, text='注册', font=('黑体', 16), width=10, height=1, command=registerwindow)
+        bcancel.place(x=315, y=200)
+        bsign.place(x=185, y=200)
+        brg.place(x=55, y=200)
 
 
 # 考勤窗口
@@ -169,6 +175,7 @@ class KqWindow(tk.Tk):
         def kqok():
             k = 0
             qqstu = qqlist.get(0, 'end')
+            lenth = len(qqstu)
             if qqstu:
                 pass
             else:
@@ -190,17 +197,18 @@ class KqWindow(tk.Tk):
                     f4w.writerow(r)
             else:
                 for r in aline:
+                    k=0
                     for nm in qqstu:
+                        k+=1
                         if r[0] == nm:
                             r[2] = r[2] + nowkq + ' '
                             f4w.writerow(r)
                             break
-                        else:
+                        elif k == lenth:
                             t = int(r[1])
                             t += 10
                             r[1] = str(t)
                             f4w.writerow(r)
-                            break
             f4.close()
             ask = messagebox.askokcancel('考勤完成', '要继续留在考勤界面吗？')
             if ask:
@@ -208,7 +216,11 @@ class KqWindow(tk.Tk):
                 qqlist.delete(0, 'end')
             else:
                 self.destroy()
-                MainWindow().mainloop()
+                MainWindow().ro.mainloop()
+
+        def fc():
+            self.destroy()
+            MainWindow().ro.mainloop()
 
         stlist = tk.Listbox(self, height=15)
         stlist.place(x=60, y=50)
@@ -235,7 +247,10 @@ class KqWindow(tk.Tk):
 
         global nowkq
         tipl = tk.Label(self, text='当前考勤项目为  ' + nowkq, font=('华文行楷', 15))
-        tipl.place(x=300, y=300)
+        tipl.place(x=230, y=300)
+
+        fh = tk.Button(self, text='返回', command=fc, font=('宋体', 13))
+        fh.place(x=470, y=305)
 
 
 # 考勤内容选择窗口
@@ -393,7 +408,7 @@ class StManager(tk.Tk):
 
         def fc():
             self.destroy()
-            MainWindow().mainloop()
+            MainWindow().ro.mainloop()
 
         adl = tk.Label(self, text='名称:                            学分:')
         adl.place(x=250, y=220)
@@ -430,7 +445,7 @@ class StWatcher(tk.Tk):
 
         def fc():
             self.destroy()
-            MainWindow().mainloop()
+            MainWindow().ro.mainloop()
 
         def ok():
             nmli.delete(0, 'end')
@@ -457,58 +472,59 @@ class StWatcher(tk.Tk):
 
 
 # 主窗口
-class MainWindow(tk.Tk):
+class MainWindow:
 
     def __init__(self):
-        super().__init__()
-        self.title("学生体育考勤管理系统")
-        self.geometry("680x405")
-        self.resizable(width=False, height=False)
+        self.ro = tk.Tk()
+        self.ro.title("学生体育考勤管理系统")
+        self.ro.geometry("700x405")
+        self.ro.resizable(width=False, height=False)
         self.ini_ui()
 
     def ini_ui(self):
-        toplabel = tk.Label(self, text="学 生 体 育 考 勤 系 统", font=('黑体', 16))
-        toplabel.place(x=10, y=15)
-
-        global uname
-        namelabel = tk.Label(self, text='欢迎  ' + uname + "  使用本系统", font=('华文行楷', 12))
-        namelabel.place(x=30, y=360)
-
         def mainquit():
-            self.destroy()
+            self.ro.destroy()
 
         def opkqwindow():
-            self.destroy()
+            self.ro.destroy()
             KqChoose().mainloop()
 
         def opstmnwindow():
-            self.destroy()
+            self.ro.destroy()
             StManager().mainloop()
 
         def opstdcwindow():
-            self.destroy()
+            self.ro.destroy()
             StWatcher().mainloop()
 
-        mainmenu = tk.Menu(self)
-        helpmenu = tk.Menu(mainmenu, tearoff=0)
-        mainmenu.add_cascade(label='帮助', menu=helpmenu)
-        helpmenu.add_command(label="帮助文件....", )
-        helpmenu.add_command(label='退出', command=mainquit)
-        self.config(menu=mainmenu)
+        self.img1 = tk.PhotoImage(file='./images/main_zz.png')
+        zzl = tk.Label(self.ro,image=self.img1)
+        zzl.place(x=285,y=0)
 
-        kqbutton = tk.Button(self, text='学生体育考勤', font=('宋体', 16), width=20, height=3, command=opkqwindow)
-        kqbutton.place(x=20, y=70)
-        ckbutton = tk.Button(self, text='导出学生成绩', font=('宋体', 16), width=20, height=3, command=opstdcwindow)
-        ckbutton.place(x=20, y=170)
-        tjbutton = tk.Button(self, text='学生考勤管理', font=('宋体', 16), width=20, height=3, command=opstmnwindow)
-        tjbutton.place(x=20, y=270)
+        self.img2=tk.PhotoImage(file='./images/main_bg.png')
+        bgl =tk.Label(self.ro,image=self.img2)
+        bgl.place(x=0,y=0)
 
-        tcbutton = tk.Button(self, text='退出系统', font=('微软雅黑', 9), width=8, height=1, command=mainquit)
+        self.img3=tk.PhotoImage(file='./images/main_top.png')
+        toplabel = tk.Label(self.ro, image=self.img3)
+        toplabel.place(x=5, y=5)
+        global uname
+        namelabel = tk.Label(self.ro, text='欢迎  ' + uname + "  使用本系统", font=('华文行楷', 13))
+        namelabel.place(x=30, y=360)
+
+        kqbutton = tk.Button(self.ro, text='学生体育考勤', font=('宋体', 16), width=20, height=3, command=opkqwindow)
+        kqbutton.place(x=20, y=74)
+        ckbutton = tk.Button(self.ro, text='导出学生成绩', font=('宋体', 16), width=20, height=3, command=opstdcwindow)
+        ckbutton.place(x=20, y=174)
+        tjbutton = tk.Button(self.ro, text='学生考勤管理', font=('宋体', 16), width=20, height=3, command=opstmnwindow)
+        tjbutton.place(x=20, y=274)
+
+        tcbutton = tk.Button(self.ro, text='退出系统', font=('微软雅黑', 9), width=8, height=1, command=mainquit)
         tcbutton.place(x=210, y=358)
 
-        tpl = tk.Label(self)
+        tpl = tk.Label(self.ro)
         tpl.pack()
 
 
 if __name__ == "__main__":
-    SignWindow().mainloop()
+    SignWindow().root.mainloop()
