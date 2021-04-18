@@ -1,5 +1,5 @@
 import csv
-import os
+import pathlib
 import sqlite3 as sq
 import tkinter as tk
 from tkinter import filedialog
@@ -14,7 +14,6 @@ usco = sq.connect('./db/list.db')
 cur = usco.cursor()
 cur.execute("create table if not exists login (id varchar(20) primary key, name varchar(30), password "
             "varchar(30))")
-cur.execute("insert into login (name, password) values (?,?)", ("1", "1"))  # 最后删除
 cur.execute("insert into login (name, password) values (?,?)", ("admin", "admin"))
 
 
@@ -52,7 +51,7 @@ class RegisterWindow(tk.Tk):
                 global cur
                 cur.execute("insert into login (name, password) values (?,?)", (zh, mm))
                 tk.messagebox.showinfo('欢迎', '注册成功')
-                os.mkdir('./db/' + zh)
+                pathlib.Path('./db/' + zh).mkdir()
                 global uname
                 uname = zh
                 self.destroy()
@@ -210,7 +209,7 @@ class KqWindow(tk.Tk):
                             r[1] = str(t)
                             f4w.writerow(r)
             f4.close()
-            ask = messagebox.askokcancel('考勤完成', '要继续留在考勤界面吗？')
+            ask = messagebox.askyesno('考勤完成', '要继续留在考勤界面吗？')
             if ask:
                 stlist.delete(0, 'end')
                 qqlist.delete(0, 'end')
@@ -305,7 +304,7 @@ class DrNewClass(tk.Tk):
             var.set(mdfile)
 
         def drquit():
-            f = open(var.get(), 'r', encoding='utf-8')
+            f = open(var.get(), 'r', encoding='gbk')
             fc = csv.reader(f)
             f2 = open('./db/' + uname + '/' + nmet.get() + '.csv', 'a', newline='', encoding='utf-8')
             fw = csv.writer(f2)
@@ -327,9 +326,9 @@ class DrNewClass(tk.Tk):
         crb = tk.Button(self, text='从.csv导入名单...', command=drmd)
         crb.place(x=220, y=12)
         var = tk.StringVar(self)
-        var.set("请选择班级名单")
+        var.set("导入前务必阅读帮助中有关文件的格式")
         locl = tk.Label(self, textvariable=var)
-        locl.place(x=20, y=15)
+        locl.place(x=10, y=15)
         mcb = tk.Label(self, text='班级名称：', font=('黑体', 9))
         mcb.place(x=10, y=55)
         nmet = tk.Entry(self, show=None, font=('黑体', 12), width=20)
@@ -454,6 +453,26 @@ class StWatcher(tk.Tk):
             for row2 in fw:
                 nmli.insert('end', row2[0] + '     ' + '总' + row2[1] + '学分')
 
+        def cz():
+            bo = tk.messagebox.askyesno('重置学生学分','是否重置学生学分与缺勤项目？')
+            if bo:
+                f3 = open('./db/' + uname + '/' + chcl.get() + '.csv', 'r', encoding='utf-8')
+                f3r = csv.reader(f3)
+                aline = []
+                for row1 in f3r:
+                    aline.append(row1)
+                f3.close()
+                f4 = open('./db/' + uname + '/' + chcl.get() + '.csv', 'w', newline='', encoding='utf-8')
+                f4w = csv.writer(f4)
+                for r in aline:
+                    r[1]='0'
+                    r[2]=''
+                    f4w.writerow(r)
+                f4.close()
+                ok()
+            else:
+                pass
+
         dcb = tk.Button(self, text='导出为.csv...', width=13, command=exp)
         dcb.place(x=195, y=250)
         fh = tk.Button(self, text='返回', width=13, command=fc)
@@ -465,10 +484,12 @@ class StWatcher(tk.Tk):
                 allcl.append(trow)
         chcl = ttk.Combobox(self, values=allcl)
         chcl.place(x=30, y=20)
-        nmli = tk.Listbox(self, height=18)
+        nmli = tk.Listbox(self, height=15)
         nmli.place(x=30, y=50)
         qd = tk.Button(self, text='班级选择预览', command=ok)
         qd.place(x=200, y=18)
+        czb =tk.Button(self,text='重置',width=11,command=cz)
+        czb.place(x=50,y=340)
 
 
 # 主窗口
